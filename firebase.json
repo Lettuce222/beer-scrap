@@ -4,14 +4,20 @@
     "indexes": "firestore.indexes.json"
   },
   "storage": {
-    "rules": "y"
+    "rules": "storage.rules"
   },
   "hosting": {
-    "public": "build",
+    "public": "public",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
     ]
   }
 }
