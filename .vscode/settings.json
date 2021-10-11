@@ -1,0 +1,5 @@
+{
+  "prettier.configPath": "/home/lettuce/beer-scrap/.prettierrc.yaml",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true
+}
