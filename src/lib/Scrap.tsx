@@ -43,7 +43,7 @@ export const Scrap: FC<Props> = () => {
       });
       setLabels(tmpLabels);
     })();
-  }, [db]);
+  }, [db, storage]);
 
   return (
     <>
