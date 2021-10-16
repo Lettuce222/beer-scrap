@@ -1,12 +1,12 @@
 import { FC, useEffect, useState } from 'react';
 import { firebaseApp } from '../config/firebase';
+import { getFirestore, collection, getDocs } from 'firebase/firestore/lite';
 import {
-  getFirestore,
-  collection,
-  getDocs,
-  Firestore,
-} from 'firebase/firestore/lite';
-import { getStorage, ref, getDownloadURL } from 'firebase/storage';
+  getStorage,
+  ref,
+  getDownloadURL,
+  FirebaseStorage,
+} from 'firebase/storage';
 
 type Props = {};
 
@@ -15,41 +15,42 @@ type Label = {
   url: string;
 };
 
-const getLabels = async (
-  db: Firestore,
-  getUrl: (storagePath: string) => Promise<string>
-): Promise<Promise<Label>[]> => {
-  const labelsCollection = collection(db, 'labels');
-  const labelsSnapshot = await getDocs(labelsCollection);
-  return labelsSnapshot.docs.map(async (doc) => ({
-    title: doc.data().title,
-    url: await getUrl(doc.data().storagePath),
-  }));
-};
-
 export const Scrap: FC<Props> = () => {
   const db = getFirestore(firebaseApp);
   const storage = getStorage(firebaseApp);
   const [labels, setLabels] = useState<Label[]>([]);
   useEffect(() => {
     (async () => {
-      const tmpLabels: Label[] = [];
-      (
-        await getLabels(db, (storagePath: string) =>
-          getDownloadURL(ref(storage, storagePath))
-        )
-      ).forEach(async (label) => {
-        tmpLabels.push(await label);
-      });
-      setLabels(tmpLabels);
+      const labelsCollection = collection(db, 'labels');
+      const labelsSnapshot = await getDocs(labelsCollection);
+      setLabels(
+        labelsSnapshot.docs.map((doc) => ({
+          title: doc.data().title,
+          url: doc.data().storagePath,
+        }))
+      );
     })();
-  }, [db, storage]);
+  }, [db]);
 
   return (
     <>
       {labels.map((label: Label) => (
-        <img src={label.url} alt={label.title} />
+        <Label label={label} storage={storage} />
       ))}
     </>
   );
+};
+
+const Label: FC<{ label: Label; storage: FirebaseStorage }> = ({
+  label: { title, url },
+  storage,
+}) => {
+  const [label, setLabel] = useState<Label>({ title, url: '' });
+  useEffect(() => {
+    (async () => {
+      setLabel({ ...label, url: await getDownloadURL(ref(storage, url)) });
+    })();
+  }, [url]);
+
+  return <img src={label.url} alt={label.title} />;
 };
